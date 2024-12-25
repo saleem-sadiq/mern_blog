@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { z } from "zod";
@@ -35,7 +36,7 @@ interface SignInProps {
   onSignInSuccess?: () => void;
 }
 
-const SignIn: FC<SignInProps> = ({ onSignInSuccess }) => {
+const SignIn: FC<SignInProps> = () => {
   const [showPass, setShowPass] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const router = useRouter();
@@ -56,7 +57,7 @@ const SignIn: FC<SignInProps> = ({ onSignInSuccess }) => {
       formData.append("email", values.email);
       formData.append("password", values.password);
 
-      const response = await fetch("/api/customer/auth/signin", {
+      const response = await fetch("/api/auth/signin", {
         method: "POST",
         body: formData, // Automatically sets the correct headers for multipart/form-data
       });
@@ -72,7 +73,7 @@ const SignIn: FC<SignInProps> = ({ onSignInSuccess }) => {
       // If it's a success, show the success toast
       toast.success("Login successful", { description: data.message });
       // Redirect to dashboard
-      window.location.reload();
+      router.push('/')
       // Sign-in successful
       // onSignInSuccess && onSignInSuccess(); // Call the callback if provided
     } catch (error: any) {

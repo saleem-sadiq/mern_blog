@@ -73,7 +73,7 @@ const SignUp = () => {
         formData.append(key, value.toString());
       });
 
-      const response = await fetch("/api/customer/auth/signup", {
+      const response = await fetch("/api/auth/signup", {
         method: "POST",
         body: formData, // Automatically sets the correct headers for multipart/form-data
       });
@@ -81,7 +81,7 @@ const SignUp = () => {
       const data = await response.json(); // Parse the response JSON
 
       // Check for errors based on the status code or response content
-      if (response.status >= 400 || data.status === "error") {
+      if (!response.ok) {
         toast.error(data.message || "Failed to sign up");
         return;
       } else {

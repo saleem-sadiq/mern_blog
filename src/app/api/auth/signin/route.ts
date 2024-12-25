@@ -2,21 +2,33 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    // Get the form data from the request
     const formData = await request.formData();
-    const response = await fetch(`${process.env.BACKEND_DOMAIN}/customer/auth/signin.php`, {
+    const data: Record<string, string> = {};
+
+    // Convert the formData into a JSON object
+    formData.forEach((value, key) => {
+      data[key] = value.toString();
+    });
+
+    // Send the data as JSON to the PHP backend
+    const response = await fetch(`${process.env.BACKEND_DOMAIN}/login`, {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json', // Specify the content type
+      },
+      body: JSON.stringify(data), // Send the form data as JSON
     });
 
     const result = await response.json();
 
-     // Check if the response indicates an error based on the status in the JSON
-     if (result.status === 'error') {
+    // Check if the response indicates an error
+    if (result.status === 'error') {
       return NextResponse.json({ error: result.message }, { status: 400 });
     }
 
     // Successful sign-in
-    const { token, role, name, customer_id, customer_status } = result;
+    const { token, name, id } = result;
 
     // Create a response object to set cookies
     const responseCookie = NextResponse.json(result, { status: 200 });
@@ -26,44 +38,28 @@ export async function POST(request: Request) {
 
     // Set the JWT token in an HttpOnly cookie
     responseCookie.cookies.set('token', token, {
-      httpOnly: false, // Makes the cookie inaccessible to JavaScript in the browser
-      secure: true, // Ensures the cookie is sent only over HTTPS
+      httpOnly: true, // Ensures the cookie is not accessible to JavaScript
+      secure: true, // Only sent over HTTPS in production
       maxAge, // Expires in a week
-      path: '/', // Cookie is available site-wide
+      path: '/', // Available site-wide
     });
 
-    // Set the role in a separate cookie
-    responseCookie.cookies.set('role', role, {
-      httpOnly: false, // Allows JavaScript to access this cookie if necessary
-      secure: true, // Ensures the cookie is sent only over HTTPS
-      maxAge, // Expires in a week
-      path: '/', // Cookie is available site-wide
-    });
-
-    // Set the name in a separate cookie
+    // Set other details in separate cookies
     responseCookie.cookies.set('name', name, {
-      httpOnly: false, // Allows JavaScript to access this cookie if necessary
-      secure: true, // Ensures the cookie is sent only over HTTPS
-      maxAge, // Expires in a week
-      path: '/', // Cookie is available site-wide
+      httpOnly: false,
+      secure: true,
+      maxAge,
+      path: '/',
     });
 
-    // Set the status in a separate cookie
-    responseCookie.cookies.set('customer_status', customer_status, {
-      httpOnly: false, // Allows JavaScript to access this cookie if necessary
-      secure: true, // Ensures the cookie is sent only over HTTPS
-      maxAge, // Expires in a week
-      path: '/', // Cookie is available site-wide
+    responseCookie.cookies.set('id', id, {
+      httpOnly: false,
+      secure: true,
+      maxAge,
+      path: '/',
     });
 
-    // Set the id in a separate cookie
-    responseCookie.cookies.set('customer_id', customer_id, {
-      httpOnly: false, // Allows JavaScript to access this cookie if necessary
-      secure: true, // Ensures the cookie is sent only over HTTPS
-      maxAge, // Expires in a week
-      path: '/', // Cookie is available site-wide
-    });
-
+    // Return the response with cookies
     return responseCookie;
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });

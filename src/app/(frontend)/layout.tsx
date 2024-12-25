@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
+import "./prosemirror.css";
+import Nav from "@/components/(frontend)/Nav";
+import { Toaster } from "sonner";
 const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -19,7 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={montserrat.className}>{children}</body>
+      <body className={montserrat.className}>
+        <Nav />
+        <div className="">{children}</div>
+        <Toaster />
+      </body>
     </html>
   );
 }

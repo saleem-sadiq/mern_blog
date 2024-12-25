@@ -4,20 +4,28 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const data: any = {};
+    const data: Record<string, any> = {};
+
+    // Convert formData to JSON format
     formData.forEach((value, key) => {
       data[key] = value;
     });
 
-    // Now, send this data to the PHP backend
-    const response = await fetch(`${process.env.BACKEND_DOMAIN}/customer/auth/signup.php`, {
+    // Send JSON data to the PHP backend
+    const response = await fetch(`${process.env.BACKEND_DOMAIN}/users`, {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      return NextResponse.json({ error: 'Failed to sign up', details: errorData }, { status: response.status });
+      return NextResponse.json(
+        { error: 'Failed to sign up', details: errorData },
+        { status: response.status }
+      );
     }
 
     const result = await response.json();
