@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function convertProseMirrorToHTML(content: any): string {
     const convertNode = (node: any): string => {
       switch (node.type) {

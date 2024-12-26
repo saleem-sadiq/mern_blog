@@ -1,4 +1,5 @@
-import { parseDocument } from "htmlparser2";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {DomHandler, Parser} from 'htmlparser2'
 
 // Define the structure of an Element in HTML
 interface HTMLElement {
@@ -25,10 +26,15 @@ const extractTextFromChildren = (children: HTMLElement[] = []): string | null =>
 
 // Utility function to convert HTML to ProseMirror-style JSON
 export function convertHTMLToEditorValue(html: string): { type: string; content: any[] } {
-  const doc = parseDocument(html);
+  const handler = new DomHandler();  // Create a new handler
+  const parser = new Parser(handler); // Pass handler to the parser
+  parser.write(html);                // Parse the HTML
+  parser.end();                       // End parsing
+
+  const doc = handler.dom;   
   const content: any[] = [];
 
-  doc.children?.forEach((node: HTMLElement) => {
+  doc.forEach((node: HTMLElement) => {
     if (node.type === "tag") {
       switch (node.name) {
         case "p":

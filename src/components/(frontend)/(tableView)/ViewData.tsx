@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import {
@@ -33,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import Image from "next/image";
 import { Check } from "lucide-react";
+import { getCookie } from "@/utils/getCookieForClient";
 
 interface AddButtonConfig {
   name: string;
@@ -121,14 +124,14 @@ const ViewData = <TData, TValue>({
           }
           className="max-w-sm"
         />
-        {addButton && (
+        {(addButton && getCookie('id')) && (
           <Button className="bg-default">
             <Link href={addButton.link}>{addButton.name}</Link>
           </Button>
         )}
       </div>
       <div className="rounded-md border">
-        <Table className="bg-white rounded-md">
+        <Table className="bg-whitefade rounded-md">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -150,7 +153,7 @@ const ViewData = <TData, TValue>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  onClick={(e) => handleRowClick(row.original, e)}
+                  onClick={(e:any) => handleRowClick(row.original, e)}
                   className="cursor-pointer"
                   data-state={row.getIsSelected() && "selected"}
                 >
@@ -181,6 +184,7 @@ const ViewData = <TData, TValue>({
         <Button
           variant="outline"
           size="sm"
+          className="bg-whitefade"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
@@ -189,6 +193,7 @@ const ViewData = <TData, TValue>({
         <Button
           variant="outline"
           size="sm"
+          className="bg-whitefade"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >

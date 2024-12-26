@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, Clock, User } from "lucide-react";
+import Link from "next/link";
 
 interface BlogPost {
   _id: string;
@@ -15,9 +15,9 @@ interface BlogPost {
 }
 
 interface MostVisitedBlog {
-  id: number;
-  title: string;
-  excerpt: string;
+  _id: number;
+  name: string;
+  content: string;
   date: string;
 }
 
@@ -34,33 +34,11 @@ async function getData(id: string): Promise<BlogPost | { error: string }> {
   }
 }
 
-const mostVisitedBlogs: MostVisitedBlog[] = [
-  {
-    id: 1,
-    title: "Cillum culpa in reprehenderit aliquip labore",
-    excerpt:
-      "Cillum culpa in reprehenderit aliquip labore eiusmod elit aliquip repre henderit occaecat tempo...",
-    date: "04 March, 2022",
-  },
-  {
-    id: 2,
-    title: "Cillum culpa in reprehenderit aliquip labore",
-    excerpt:
-      "Cillum culpa in reprehenderit aliquip labore eiusmod elit aliquip repre henderit occaecat tempo...",
-    date: "04 March, 2022",
-  },
-  {
-    id: 3,
-    title: "Cillum culpa in reprehenderit aliquip labore",
-    excerpt:
-      "Cillum culpa in reprehenderit aliquip labore eiusmod elit aliquip repre henderit occaecat tempo...",
-    date: "04 March, 2022",
-  },
-];
 
 export default function BlogById({ id }: { id: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [blogPosts, setBlogPosts] = useState<BlogPost>();
+  const [relBlogPosts, setRelBlogPosts] = useState<MostVisitedBlog[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,6 +56,27 @@ export default function BlogById({ id }: { id: string }) {
 
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          const response = await fetch("/api/blog/get"); // Adjust the API endpoint accordingly
+          if (!response.ok) {
+            throw new Error("Failed to fetch blogs");
+          }
+          const data = await response.json();
+          setRelBlogPosts(data)
+          return data
+
+        } catch (error: any) {
+          return { error: error.message };
+        }
+        setIsLoading(false);
+      };
+  
+      fetchData();
+    }, []);
 
   console.log(error);
 
@@ -112,7 +111,7 @@ export default function BlogById({ id }: { id: string }) {
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="bg-blackfade2 text-white p-4 rounded-xl lg:col-span-2">
+          <div className="border border-blackfade2 p-4 rounded-xl lg:col-span-2">
             <ScrollArea className="h-[calc(100vh-120px)]">
               {isLoading ? (
                 <BlogPostSkeleton />
@@ -137,10 +136,10 @@ export default function BlogById({ id }: { id: string }) {
                             )}
                           </React.Fragment>
                         ))
-                    : mostVisitedBlogs.map((blog, index) => (
-                        <React.Fragment key={blog.id}>
+                    : relBlogPosts.map((blog, index) => (
+                        <React.Fragment key={blog._id}>
                           <MostVisitedBlogCard blog={blog} />
-                          {index < mostVisitedBlogs.length - 1 && (
+                          {index < relBlogPosts.length - 1 && (
                             <hr className="border-gray-700 my-6" />
                           )}
                         </React.Fragment>
@@ -155,8 +154,7 @@ export default function BlogById({ id }: { id: string }) {
   );
 }
 
-function BlogPostContent({ post }: { post: BlogPost | undefined }) {
-  console.log(post);
+export function BlogPostContent({ post }: { post: BlogPost | undefined }) {
   // Check if post is undefined or null before rendering content
   if (!post) {
     return <div>Loading...</div>; // Optionally display a loading message or skeleton
@@ -173,19 +171,22 @@ function BlogPostContent({ post }: { post: BlogPost | undefined }) {
 function MostVisitedBlogCard({ blog }: { blog: MostVisitedBlog }) {
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold">{blog.title}</h3>
-      <p className="text-sm text-gray-400">{blog.excerpt}</p>
+      <h3 className="font-semibold">{blog.name}</h3>
+      <div
+        dangerouslySetInnerHTML={{ __html: blog.content }}
+        className="max-w-none text-sm text-gray-400"
+      />
       <div className="flex justify-between items-center">
         <div className="flex items-center text-gray-500">
           <Calendar className="w-4 h-4 mr-2" />
           <span className="text-xs">{blog.date}</span>
         </div>
-        <Button
-          variant="link"
+        <Link
+        href={`/blogs/${blog._id}`}
           className="text-red-500 hover:text-red-400 p-0 h-auto"
         >
           Read More
-        </Button>
+        </Link>
       </div>
     </div>
   );

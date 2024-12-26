@@ -1,69 +1,32 @@
-import { fetchWithAuth } from "@/utils/fetchWithAuth";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function POST(
+export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Extract token from headers or cookies (if available)
-    let token = request.headers.get("authorization")?.replace("Bearer ", "");
-
-    if (!token) {
-      // Use Next.js cookies API to get the token from HttpOnly cookies
-      token = cookies().get("token")?.value;
-    }
-
-    // Extract role from cookies
-    const role = cookies().get("role")?.value;
-
-    if (!token || !role) {
-      return NextResponse.json(
-        { status: "error", message: "Unauthorized: No token or role found." },
-        { status: 401 }
-      );
-    }
-
     const { id } = params;
+
+    // Extract form data from the request
     const formData = await request.formData();
-
-    // Extract form data values
     const name = formData.get("name");
-    const slug = formData.get("slug");
-    const description = formData.get("description");
     const content = formData.get("content");
-    const status = formData.get("status");
-    const image = formData.get("image");
-    if (!name || !slug || !description || !content) {
-      return NextResponse.json(
-        { status: "error", message: "Missing required fields." },
-        { status: 400 }
-      );
-    }
 
-    // Prepare the form data for the backend
-    const backendFormData = new FormData();
-    backendFormData.append("id", id);
-    backendFormData.append("name", name);
-    backendFormData.append("slug", slug);
-    backendFormData.append("description", description);
-    backendFormData.append("content", content); // Store as HTMLContent
-    backendFormData.append("status", status == "1" ? "1" : "0");
-
-    if (image instanceof File) {
-      backendFormData.append("image", image, image.name);
-    }
+    // Prepare the JSON data for the backend
+    const backendData = {
+      title: name,
+      content: content,
+      date: new Date().toISOString().split("T")[0],
+    };
 
     const backendDomain = process.env.BACKEND_DOMAIN;
-    const response = await fetchWithAuth(
-      `${backendDomain}/admin/blog/edit_blog.php`,
-      {
-        method: "POST",
-        body: backendFormData,
+    const response = await fetch(`${backendDomain}/blogs/edit/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",  // Specify JSON content
       },
-      token
-    );
+      body: JSON.stringify(backendData),  // Send the data as JSON
+    });
 
     const contentType = response.headers.get("content-type");
 

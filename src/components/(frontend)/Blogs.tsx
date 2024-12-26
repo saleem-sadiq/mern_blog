@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { ActionProp, addButton, Blog, columns } from "./Columns"; // Updated from Assignment to Blog
 import ViewData from "./(tableView)/ViewData";
 
@@ -11,27 +10,35 @@ async function getData(): Promise<Blog[] | { error: string }> {
   try {
     const response = await fetch("/api/blog/get"); // Adjust the API endpoint accordingly
     if (!response.ok) {
-      throw new Error("Failed to fetch blogs");
+      const errorData = await response.json();
+      return { error: errorData.details?.message || "Failed to fetch blogs" };
     }
-    return await response.json();
+
+    const data = await response.json();
+
+    // If the response contains no data, return an empty array
+    if (!Array.isArray(data) || data.length === 0) {
+      return []; // Return an empty array if no blogs are found
+    }
+
+    return data;
   } catch (error: any) {
-    return { error: error.message };
+    return { error: error.message || "An unexpected error occurred" };
   }
 }
 
 const Blogs = () => {
   const [data, setData] = useState<Blog[]>([]); // Updated from Assignment to Blog
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       const result = await getData();
       if ("error" in result) {
-        setError(result.error);
+        console.log(result.error);
       } else {
-        setData(result);
+        setData(result); // Set the blogs data
       }
       setLoading(false);
     };
@@ -41,34 +48,24 @@ const Blogs = () => {
 
   if (loading) {
     return (
-      <div className="mt-5 px-5">
-        <p className="text-36 font-semibold text-default">Blogs</p> {/* Updated from Assignments to Blogs */}
+      <div className="mt-20 px-5">
+        <p className="text-36 font-semibold text-default">Blogs</p>{" "}
+        {/* Updated from Assignments to Blogs */}
         <div className="text-center">Loading...</div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="mt-5 px-5">
-        <p className="text-36 font-semibold text-default">Blogs</p> {/* Updated */}
-        <div className="text-center text-red-500">Error: {error}</div>
-        <div className="text-center mt-4">
-          <Button onClick={() => window.location.reload()}>Retry</Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="mt-5 px-5">
-      <p className="text-36 font-semibold text-default">Blogs</p> {/* Updated */}
+    <div className="mt-24 px-5">
+      <p className="text-36 font-semibold text-default">Blogs</p>{" "}
+      {/* Updated */}
       <ViewData
         columns={columns}
         data={data}
         addButton={addButton}
         actionComponent={ActionProp}
-        basePath="/admin/blog/" // Updated from "/admin/assignment/" to "/admin/blog/"
+        basePath="/blogs/" // Updated from "/admin/assignment/" to "/admin/blog/"
       />
     </div>
   );

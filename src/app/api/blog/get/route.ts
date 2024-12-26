@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
     const backendDomain = process.env.BACKEND_DOMAIN;
-
+    const userId = (await cookies()).get("id")?.value;
     // Fetch all blogs from the backend
-    const response = await fetch(`${backendDomain}/blogs`, {
+    const response = await fetch(`${backendDomain}/blogs/admin/${userId}`, {
       cache: "no-cache",
     });
 

@@ -23,24 +23,21 @@ import {
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import Image from "next/image";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Define the Blog type
 export type Blog = {
-  id: number;
+  _id: number;
   name: string;
-  description: string;
-  image_url: string | null;
+  content:string;
+  date: string;
   created_at: string;
   updated_at: string;
-  status: 0 | 1;
 };
 
 // Update the Add button to reference the blogs
 export const addButton = {
   name: "Add Blog",
-  link: "/admin/blog/add_blog",
+  link: "/blogs/add_blog",
 };
 
 type ActionCellProps = {
@@ -56,8 +53,8 @@ export const ActionProp: FC<ActionCellProps> = ({ prop, basePath }) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api${basePath}${prop.id}/delete`, {
-        method: "POST",
+      const response = await fetch(`/api/blog/${prop._id}/delete`, {
+        method: "DELETE",
       });
 
       if (response.ok) {
@@ -79,7 +76,7 @@ export const ActionProp: FC<ActionCellProps> = ({ prop, basePath }) => {
     <>
       <div className="space-x-2">
         <Button variant="default">
-          <Link href={`${basePath}${prop.id}/edit_blog`}>Edit</Link>
+          <Link href={`${basePath}${prop._id}/edit_blog`}>Edit</Link>
         </Button>
         <Button variant="destructive" onClick={() => setOpen(true)}>
           Delete
@@ -124,8 +121,8 @@ const ActionCell: FC<ActionCellProps> = ({ prop, basePath }) => {
     e.stopPropagation();
     setIsDeleting(true);
         try {
-          const response = await fetch(`/api${basePath}${prop.id}/delete`, {
-            method: "POST",
+          const response = await fetch(`/api/blog/${prop._id}/delete`, {
+            method: "DELETE",
           });
 
           if (response.ok) {
@@ -175,7 +172,7 @@ const ActionCell: FC<ActionCellProps> = ({ prop, basePath }) => {
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
-              window.location.href = `${basePath}${prop.id}/edit_blog`;
+              window.location.href = `${basePath}${prop._id}/edit_blog`;
             }}
           >
             Edit
@@ -231,70 +228,7 @@ export const columns: ColumnDef<Blog>[] = [
     header: "Blog Title",
   },
   {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              className="truncate max-w-[150px]"
-              data-tooltip-target="tooltip-animation"
-            >
-              {row.original.description}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent className="bg-blackfade2 text-white">
-            <p>{row.original.description}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    ),
-  },
-  {
-    accessorKey: "image_url",
-    header: "Image",
-    cell: ({ row }) =>
-      row.original.image_url ? (
-        <Image
-          src={row.original.image_url}
-          alt={row.original.name}
-          width={1000}
-          height={1000}
-          className="rounded-md w-16 h-16"
-        />
-      ) : (
-        "No Image"
-      ),
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <Button
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="bg-transparent p-0 m-0 text-gray-500 hover:bg-transparent"
-      >
-        Status
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return (
-        <span
-          className={`px-2 py-1 rounded-full text-sm font-medium ${
-            status == 1
-              ? "text-green-700 bg-green-100"
-              : "text-red-700 bg-red-100"
-          }`}
-        >
-          {status == 1 ? "Published" : "Draft"}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: "Created At",
   },
   {
@@ -302,7 +236,7 @@ export const columns: ColumnDef<Blog>[] = [
     header: "Action",
     id: "actions",
     cell: ({ row }) => (
-      <ActionCell prop={row.original} basePath="/admin/blog/" />
+      <ActionCell prop={row.original} basePath="/blogs/" />
     ),
   },
 ];

@@ -1,20 +1,13 @@
-import { fetchWithAuth } from "@/utils/fetchWithAuth";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    // Extract token from headers or cookies (if available)
-    let token = request.headers.get("authorization")?.replace("Bearer ", "");
-    if (!token) {
-      token = cookies().get("token")?.value;
-    }
-
     // Extract role from cookies (if applicable)
-    const role = cookies().get("role")?.value;
+    const userId = (await cookies()).get("id")?.value;
 
     // Unauthorized if no token or role is present
-    if (!token || !role) {
+    if (!userId) {
       return NextResponse.json(
         { status: "error", message: "Unauthorized: No token or role found." },
         { status: 401 }
@@ -24,48 +17,40 @@ export async function POST(request: Request) {
     // Parse the request's form data
     const formData = await request.formData();
     const name = formData.get("name") as string;
-    const slug = formData.get("slug") as string;
-    const description = formData.get("description") as string;
     const content = formData.get("content") as string;
-    const imageFile = formData.get("image") as File | null;
-    const status = formData.get("status"); // Set status based on the checkbox value
+    const status = formData.get("status");
 
-    console.log("ye status he:", status);
-    // Create a FormData object to send to the PHP backend
-    const backendFormData = new FormData();
-    backendFormData.append("name", name);
-    backendFormData.append("slug", slug);
-    backendFormData.append("description", description);
-    backendFormData.append("content", content);
-    backendFormData.append("status", String(status)); // Append status
+    console.log("Received status:", status);
 
-    // Handle the image file if it's provided
-    if (imageFile) {
-      backendFormData.append("image", imageFile, imageFile.name);
-    }
+    // Step 1: Send JSON Data to PHP Backend
+    const jsonPayload = {
+      title :name,
+      content,
+      date: new Date().toISOString().split("T")[0],
+      admin: userId, // Pass userId if needed
+    };
 
-    // Send the request to the PHP API
-    const response = await fetchWithAuth(
-      `${process.env.BACKEND_DOMAIN}/admin/blog/create_blog.php`,  // PHP backend endpoint
+    const jsonResponse = await fetch(
+      `${process.env.BACKEND_DOMAIN}/blogs`,
       {
         method: "POST",
-        body: backendFormData,  // Pass the form data to the PHP backend
-      },
-      token // Pass the token explicitly
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jsonPayload),
+      }
     );
 
-    const result = await response.json();
+    const jsonResult = await jsonResponse.json();
 
-    // Handle the PHP backend's response
-    if (!response.ok || result.status === "error") {
+    if (!jsonResponse.ok || jsonResult.status === "error") {
       return NextResponse.json(
-        { status: "error", message: result.message || "Failed to create blog." },
+        { status: "error", message: jsonResult.message || "Failed to create blog." },
         { status: 500 }
       );
     }
 
+  
     return NextResponse.json(
-      { status: "success", message: result.message || "Blog created successfully." },
+      { status: "success", message: "Blog created successfully" },
       { status: 200 }
     );
   } catch (error) {

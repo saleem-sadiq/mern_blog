@@ -48,7 +48,9 @@ export default function AllBlogs() {
 
     fetchData();
   }, []);
-  console.log(error);
+  if (error) {
+    console.error(error);
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,11 +60,15 @@ export default function AllBlogs() {
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredBlogPosts = blogPosts.filter(
-    (post) =>
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBlogPosts = blogPosts.filter((post) => {
+    const title = post.title || ""; // Default to empty string if title is undefined
+    const content = post.content || ""; // Default to empty string if content is undefined
+
+    return (
+      title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <div className="text-blackfade bg-white min-h-screen p-6 mt-24">
@@ -108,7 +114,10 @@ function BlogPostCard({ post }: { post: BlogPost }) {
   return (
     <div className="w-full bg-blackfade2 rounded-lg p-6 space-y-4">
       <h2 className="text-white text-xl font-semibold">{post.title}</h2>
-      <p className="text-gray-400">{post.content}</p>
+      <div
+        dangerouslySetInnerHTML={{ __html: post.content }}
+        className="max-w-none text-gray-400"
+      />
       <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
         <div className="flex flex-col lg:flex-row gap-5">
           <div className="flex items-center text-gray-500">
